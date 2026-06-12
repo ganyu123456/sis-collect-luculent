@@ -1,0 +1,19 @@
+# SIS 测点点表示例
+# 字段说明：
+#   point_name  - SIS 测点完整名称（必填），对应 SIS 接口 Names 参数
+#   alias       - 测点别名（可选），留空则使用 point_name
+#   description - 测点描述（可选）
+#   unit        - 工程单位（可选）
+#   enabled     - 是否启用（true/false，默认 true）
+point_name,alias,description,unit,enabled
+DDM.SIS.0DCS_00BHT03GT001XQ001,BHT03GT001_I,主冷却水泵房变压器A高压断路器高压侧电流,A,true
+DDM.SIS.0DCS_00BHT03GT001XQ002,BHT03GT001_P,主冷却水泵房变压器A有功功率,KW,true
+DDM.SIS.0DCS_00BHT03GT001XQ003,BHT03GT001_E,主冷却水泵房变压器A有功电度,kWh,true
+DDM.SIS.0DCS_00BHT03GT002XQ001,BHT03GT002_I,循环水PCA段电源进线B相电流,A,true
+DDM.SIS.0DCS_00BHT04GT001XQ001,BHT04GT001_I,主冷却水泵房变压器B高压断路器高压侧电流,A,true
+DDM.SIS.0DCS_00BHT04GT001XQ002,BHT04GT001_P,主冷却水泵房变压器B有功功率,KW,true
+DDM.SIS.0DCS_00BHT04GT001XQ003,BHT04GT001_E,主冷却水泵房变压器B有功电度,kWh,true
+DDM.SIS.0DCS_00BHT04GT002XQ001,BHT04GT002_I,循环水PCB段电源进线B相电流,A,true
+DDM.SIS.0DCS_00BHT05GT001XQ001,BHT05GT001_I,办公楼变压器A高压断路器高压侧电流,A,true
+DDM.SIS.0DCS_00BHT05GT001XQ002,BHT05GT001_P,办公楼变压器A有功功率,KW,true
+DDM.SIS.0DCS_00BHT05GT002XQ001,BHT05GT002_I,办公楼变压器B高压断路器高压侧电流,A,false

@@ -1,0 +1,54 @@
+# SIS 数采应用配置文件
+# 支持环境变量替换，例如：${SIS_BASE_URL}
+
+# ============ SIS HTTP 接口配置 ============
+sis:
+  base_url: "http://localhost:7757"        # SIS 系统地址（可使用环境变量 ${SIS_BASE_URL}）
+  data_point_path: "/api/Values/GetDataPoint"
+  timeout_seconds: 10                       # HTTP 请求超时（秒）
+  batch_size: 50                            # 每批向 SIS 请求的测点数量（防止单次请求过大）
+
+# ============ MQTT 连接配置 ============
+mqtt:
+  broker: "tcp://localhost:1883"            # MQTT Broker 地址（可使用环境变量 ${MQTT_BROKER}）
+  client_id: "sis-collect-001"
+  username: ""                              # 鉴权用户名（可使用环境变量 ${MQTT_USERNAME}）
+  password: ""                              # 鉴权密码（可使用环境变量 ${MQTT_PASSWORD}）
+  keep_alive: 60                            # 心跳间隔（秒）
+  clean_session: true
+  qos: 1                                    # QoS=1，确保至少一次送达
+
+  # TLS/SSL 配置（不启用则留空）
+  tls_enable: false
+  tls_ca_cert: ""
+  tls_client_cert: ""
+  tls_client_key: ""
+
+  # 断线指数退避重连配置
+  reconnect_min_seconds: 1
+  reconnect_max_seconds: 120
+
+# ============ 采集任务配置 ============
+collect:
+  topic:
+    device_id: "sis-001"                   # 设备唯一编码（平台分配）
+    # 以下主题若留空，将自动根据 device_id 生成
+    status_topic: "device/sis-001/status"
+    cmd_topic:    "device/sis-001/cmd"
+    data_topic:   "device/sis-001/data"
+
+  collect_interval_s: 10                   # 业务数据采集间隔（秒），可被平台 cmd 指令动态修改
+  status_interval_s: 30                    # 状态上报间隔（秒，周期推送）
+  mqtt_batch_size: 100                     # 每条 MQTT 数据消息携带的测点数量（超出则拆分为多条消息）
+
+# ============ 点表配置 ============
+point_csv: "points.csv"                    # CSV 点表文件路径（支持 ConfigMap 挂载）
+
+# ============ 健康检查 ============
+health:
+  port: 8080                               # HTTP /health 端口
+
+# ============ 日志配置 ============
+log:
+  level: "info"                            # debug / info / warn / error
+  file_path: ""                            # 留空则仅输出控制台；填写路径则同时写文件
