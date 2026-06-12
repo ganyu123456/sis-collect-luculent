@@ -20,6 +20,16 @@ type PointValue struct {
 	Value PointValueBody `json:"Value"`
 }
 
+// PointTimeSec 将 SIS 返回的 PointTime 字符串解析为 Unix 秒时间戳。
+// SIS 返回格式为 "2006-01-02T15:04:05"，解析失败则返回当前时间的秒数。
+func (pv *PointValue) PointTimeSec() int64 {
+	t, err := time.Parse("2006-01-02T15:04:05", pv.Value.PointTime)
+	if err != nil {
+		return time.Now().Unix()
+	}
+	return t.Unix()
+}
+
 // PointValueBody 测点详细字段
 type PointValueBody struct {
 	ExpandName   string  `json:"ExpandName"`

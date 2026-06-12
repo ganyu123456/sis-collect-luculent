@@ -30,11 +30,18 @@ type StatusMessage struct {
 	CollectInterval    int    `json:"collectInterval"`
 }
 
+// PointData batchData 中单个测点的数据格式
+type PointData struct {
+	Value     float64 `json:"value"`
+	Timestamp int64   `json:"timestamp"` // SIS 测点时间戳（秒）
+	State     int     `json:"state"`     // 1=正常，0=异常
+}
+
 // DataMessage device/{id}/data 消息体（单批）
 type DataMessage struct {
-	Timestamp int64                  `json:"timestamp"`
-	GatewayID string                 `json:"gatewayId"`
-	BatchData map[string]interface{} `json:"batchData"`
+	Timestamp int64                `json:"timestamp"`
+	DeviceID  string               `json:"deviceId"`
+	BatchData map[string]PointData `json:"batchData"`
 }
 
 // CmdMessage device/{id}/cmd 消息体（平台下发指令）
@@ -232,7 +239,7 @@ func (a *App) publishData(result *collector.CollectResult) {
 		batchSize = 100
 	}
 
-	gatewayID := a.cfg.Collect.Topic.DeviceID
+	deviceID := a.cfg.Collect.Topic.DeviceID
 	topic := a.cfg.Collect.Topic.DataTopic
 	ts := result.CollectTime.UnixMilli()
 
@@ -244,14 +251,18 @@ func (a *App) publishData(result *collector.CollectResult) {
 
 	batches := splitSlice(allPoints, batchSize)
 	for batchIdx, batch := range batches {
-		batchData := make(map[string]interface{}, len(batch))
+		batchData := make(map[string]PointData, len(batch))
 		for _, pv := range batch {
-			batchData[pv.Key] = pv.Value.PointValue
+			batchData[pv.Key] = PointData{
+				Value:     pv.Value.PointValue,
+				Timestamp: pv.PointTimeSec(),
+				State:     1,
+			}
 		}
 
 		msg := DataMessage{
 			Timestamp: ts,
-			GatewayID: gatewayID,
+			DeviceID:  deviceID,
 			BatchData: batchData,
 		}
 
