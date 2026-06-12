@@ -25,7 +25,7 @@ type HealthResponse struct {
 
 var (
 	startTime = time.Now()
-	// Version 由 ldflags 注入，如: -ldflags "-X github.com/sis-collect/internal/app.Version=v1.0.0"
+	// Version 由 ldflags 注入，如: -ldflags "-X github.com/sis-collect-luculent/internal/app.Version=v1.0.0"
 	Version = "dev"
 )
 

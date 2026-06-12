@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sis-collect/config"
+	"github.com/sis-collect-luculent/config"
 	"go.uber.org/zap"
 )
 

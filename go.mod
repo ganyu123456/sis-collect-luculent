@@ -1,4 +1,4 @@
-module github.com/sis-collect
+module github.com/sis-collect-luculent
 
 go 1.23.0
 

@@ -11,10 +11,10 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/sis-collect/config"
-	"github.com/sis-collect/internal/collector"
-	mqttclient "github.com/sis-collect/internal/mqtt"
-	"github.com/sis-collect/internal/pointtable"
+	"github.com/sis-collect-luculent/config"
+	"github.com/sis-collect-luculent/internal/collector"
+	mqttclient "github.com/sis-collect-luculent/internal/mqtt"
+	"github.com/sis-collect-luculent/internal/pointtable"
 )
 
 // ===== MQTT 消息结构体 =====

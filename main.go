@@ -11,8 +11,8 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/sis-collect/config"
-	"github.com/sis-collect/internal/app"
+	"github.com/sis-collect-luculent/config"
+	"github.com/sis-collect-luculent/internal/app"
 )
 
 var configPath = flag.String("config", "config.yaml", "配置文件路径")

@@ -11,7 +11,7 @@ sis:
 # ============ MQTT 连接配置 ============
 mqtt:
   broker: "tcp://localhost:1883"            # MQTT Broker 地址（可使用环境变量 ${MQTT_BROKER}）
-  client_id: "sis-collect-001"
+  client_id: "sis-collect-luculent-001"
   username: ""                              # 鉴权用户名（可使用环境变量 ${MQTT_USERNAME}）
   password: ""                              # 鉴权密码（可使用环境变量 ${MQTT_PASSWORD}）
   keep_alive: 60                            # 心跳间隔（秒）

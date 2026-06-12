@@ -17,8 +17,8 @@ COPY . .
 ARG VERSION=dev
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build -trimpath \
-    -ldflags "-s -w -X github.com/sis-collect/internal/app.Version=${VERSION}" \
-    -o sis-collect ./main.go
+    -ldflags "-s -w -X github.com/sis-collect-luculent/internal/app.Version=${VERSION}" \
+    -o sis-collect-luculent ./main.go
 
 
 # ===== 运行阶段（最小镜像） =====
@@ -31,7 +31,7 @@ RUN apk add --no-cache ca-certificates tzdata && \
 
 WORKDIR /app
 
-COPY --from=builder /build/sis-collect .
+COPY --from=builder /build/sis-collect-luculent .
 
 # 默认配置文件和点表（可通过 ConfigMap 挂载覆盖）
 COPY config.yaml .
@@ -47,5 +47,5 @@ EXPOSE 8080
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser
 
-ENTRYPOINT ["./sis-collect"]
+ENTRYPOINT ["./sis-collect-luculent"]
 CMD ["-config", "config.yaml"]

@@ -14,7 +14,7 @@ import (
 	pahomqtt "github.com/eclipse/paho.mqtt.golang"
 	"go.uber.org/zap"
 
-	"github.com/sis-collect/config"
+	"github.com/sis-collect-luculent/config"
 )
 
 // MessageHandler 订阅消息回调
