@@ -115,11 +115,43 @@ jobs:
             harbor.zkjgy.online/library/sis-collect-luculent:linux-amd64 \
             harbor.zkjgy.online/library/sis-collect-luculent:linux-arm64
 
+  helm-package-push:
+    name: Helm Package and Push
+    runs-on: ubuntu-latest
+    needs:
+      - manifest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
+
+      - name: Helm Login and Push
+        env:
+          HARBOR_USERNAME: ${{ secrets.HARBOR_USERNAME }}
+          HARBOR_PASSWORD: ${{ secrets.HARBOR_PASSWORD }}
+        run: |
+          helm registry login harbor.zkjgy.online \
+            --username $HARBOR_USERNAME \
+            --password $HARBOR_PASSWORD
+          helm package helm/sis-collect-luculent --version 0.1.0
+          helm push sis-collect-luculent-0.1.0.tgz oci://harbor.zkjgy.online/library
+
+      - name: Upload helm artifact
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: sis-collect-luculent-helm
+          path: sis-collect-luculent-0.1.0.tgz
+
   release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
     needs:
-      - manifest
+      - helm-package-push
     if: startsWith(github.ref, 'refs/tags/')
     permissions:
       contents: write
@@ -134,6 +166,11 @@ jobs:
         with:
           name: sis-collect-luculent-arm64
 
+      - name: Download helm artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: sis-collect-luculent-helm
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -141,3 +178,4 @@ jobs:
           files: |
             sis-collect-luculent-amd64.tar.gz
             sis-collect-luculent-arm64.tar.gz
+            sis-collect-luculent-0.1.0.tgz

@@ -1,0 +1,88 @@
+# ============================================================
+# sis-collect-luculent Helm Chart 默认配置
+# ============================================================
+
+# ── 镜像 ──────────────────────────────────────────────────
+image:
+  repository: harbor.zkjgy.online/library/sis-collect-luculent
+  tag: latest
+  pullPolicy: Always
+
+imagePullSecrets:
+  - name: harbor-secret
+
+# ── KubeEdge 边缘节点调度 ──────────────────────────────────
+nodeName: cloudedge-edge-01
+tolerations:
+  - key: node-role.kubernetes.io/edge
+    operator: Exists
+    effect: NoSchedule
+
+# hostNetwork: 使用宿主机网络栈，KubeEdge 边缘场景常用
+# 启用后容器直接使用宿主机 IP/端口，无需 Service 做端口转发
+# dnsPolicy 会自动设置为 ClusterFirstWithHostNet 以保证 DNS 正常
+hostNetwork: true
+dnsPolicy: ClusterFirstWithHostNet
+
+# ── 资源限制 ──────────────────────────────────────────────
+resources:
+  requests:
+    cpu: 100m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 128Mi
+
+# ── SIS HTTP 接口配置 ──────────────────────────────────────
+# hostNetwork=true 时可直接使用宿主机 IP 访问 SIS 服务
+sis:
+  baseUrl: "http://127.0.0.1:7757"
+  dataPointPath: "/api/Values/GetDataPoint"
+  timeoutSeconds: 10
+  batchSize: 50
+
+# ── MQTT 连接配置 ──────────────────────────────────────────
+# hostNetwork=true 时可直接使用宿主机 IP 访问 MQTT Broker
+mqtt:
+  broker: "tcp://127.0.0.1:1883"
+  clientId: "sis-collect-luculent-001"
+  username: ""
+  password: ""
+  keepAlive: 60
+  cleanSession: true
+  qos: 1
+  tlsEnable: false
+  tlsCaCert: ""
+  tlsClientCert: ""
+  tlsClientKey: ""
+  reconnectMinSeconds: 1
+  reconnectMaxSeconds: 120
+
+# ── 采集任务配置 ──────────────────────────────────────────
+collect:
+  topic:
+    deviceId: "sis-001"
+    statusTopic: "device/sis-001/status"
+    cmdTopic: "device/sis-001/cmd"
+    dataTopic: "device/sis-001/data"
+  collectIntervalS: 10
+  statusIntervalS: 30
+  mqttBatchSize: 100
+
+# ── 健康检查端口 ──────────────────────────────────────────
+health:
+  port: 8080
+
+# ── 日志配置 ──────────────────────────────────────────────
+log:
+  level: "info"       # debug / info / warn / error
+  filePath: ""        # 留空仅输出控制台；填写路径则同时写文件
+
+# ── 点表文件 hostPath 挂载 ────────────────────────────────
+# 将边缘节点上的本地 CSV 文件直接挂载进容器，避免 ConfigMap 体积限制。
+# 更新点表只需替换节点上的文件并重启 Pod，无需重新 helm upgrade。
+pointsFile:
+  # 边缘节点上的绝对路径（需提前将 points.csv 上传到该路径）
+  hostPath: /opt/sis-collect-luculent/points.csv
+  # 容器内挂载路径（与 config.yaml 中 point_csv 保持一致）
+  mountPath: /app/points.csv

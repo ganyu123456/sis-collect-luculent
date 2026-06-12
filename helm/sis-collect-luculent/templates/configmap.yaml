@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "sis-collect-luculent.configmapName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sis-collect-luculent.labels" . | nindent 4 }}
+data:
+  # config.yaml 由 values.yaml 中各配置块渲染生成
+  # helm upgrade 修改 values 后 Pod 会因 checksum 注解变化而自动滚动更新
+  config.yaml: |
+    sis:
+      base_url: {{ .Values.sis.baseUrl | quote }}
+      data_point_path: {{ .Values.sis.dataPointPath | quote }}
+      timeout_seconds: {{ .Values.sis.timeoutSeconds }}
+      batch_size: {{ .Values.sis.batchSize }}
+
+    mqtt:
+      broker: {{ .Values.mqtt.broker | quote }}
+      client_id: {{ .Values.mqtt.clientId | quote }}
+      username: {{ .Values.mqtt.username | quote }}
+      password: {{ .Values.mqtt.password | quote }}
+      keep_alive: {{ .Values.mqtt.keepAlive }}
+      clean_session: {{ .Values.mqtt.cleanSession }}
+      qos: {{ .Values.mqtt.qos }}
+      tls_enable: {{ .Values.mqtt.tlsEnable }}
+      tls_ca_cert: {{ .Values.mqtt.tlsCaCert | quote }}
+      tls_client_cert: {{ .Values.mqtt.tlsClientCert | quote }}
+      tls_client_key: {{ .Values.mqtt.tlsClientKey | quote }}
+      reconnect_min_seconds: {{ .Values.mqtt.reconnectMinSeconds }}
+      reconnect_max_seconds: {{ .Values.mqtt.reconnectMaxSeconds }}
+
+    collect:
+      topic:
+        device_id: {{ .Values.collect.topic.deviceId | quote }}
+        status_topic: {{ .Values.collect.topic.statusTopic | quote }}
+        cmd_topic: {{ .Values.collect.topic.cmdTopic | quote }}
+        data_topic: {{ .Values.collect.topic.dataTopic | quote }}
+      collect_interval_s: {{ .Values.collect.collectIntervalS }}
+      status_interval_s: {{ .Values.collect.statusIntervalS }}
+      mqtt_batch_size: {{ .Values.collect.mqttBatchSize }}
+
+    point_csv: {{ .Values.pointsFile.mountPath | quote }}
+
+    health:
+      port: {{ .Values.health.port }}
+
+    log:
+      level: {{ .Values.log.level | quote }}
+      file_path: {{ .Values.log.filePath | quote }}

@@ -1,0 +1,13 @@
+apiVersion: v2
+name: sis-collect-luculent
+description: 从 SIS 系统周期性采集测点数据并经 MQTT 上报至工业云边协同平台的边缘网关服务
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - iot
+  - sis
+  - mqtt
+  - kubeedge
+maintainers:
+  - name: ganyu

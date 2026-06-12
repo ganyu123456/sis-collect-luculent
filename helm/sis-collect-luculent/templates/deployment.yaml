@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sis-collect-luculent.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "sis-collect-luculent.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "sis-collect-luculent.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "sis-collect-luculent.selectorLabels" . | nindent 8 }}
+      # ConfigMap 内容变化时（config.yaml 字段修改）自动触发 Pod 滚动更新
+      annotations:
+        checksum/config: {{ include "sis-collect-luculent.configmapName" . | sha256sum }}
+    spec:
+      {{- if .Values.nodeName }}
+      nodeName: {{ .Values.nodeName }}
+      {{- end }}
+
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      # hostNetwork=true：容器直接使用宿主机网络栈，KubeEdge 边缘场景常用
+      # 启用后可通过 127.0.0.1 直接访问同节点的 SIS 服务和 MQTT Broker
+      # dnsPolicy 设为 ClusterFirstWithHostNet 保证 DNS 解析仍走集群 CoreDNS
+      hostNetwork: {{ .Values.hostNetwork }}
+      dnsPolicy: {{ .Values.dnsPolicy }}
+      restartPolicy: Always
+
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["-config", "/app/config.yaml"]
+
+          ports:
+            - name: health
+              containerPort: {{ .Values.health.port }}
+              protocol: TCP
+
+          # 存活探针：MQTT 断连时返回 503，K8s 不重启 Pod（断线会自动重连）
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.health.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          # 就绪探针：MQTT 连接建立后才接受流量
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: {{ .Values.health.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+
+          volumeMounts:
+            # config.yaml 由 ConfigMap 渲染注入，helm upgrade 修改 values 即可生效
+            - name: app-config
+              mountPath: /app/config.yaml
+              subPath: config.yaml
+              readOnly: true
+            # 点表 CSV 由边缘节点 hostPath 直接挂载，文件过大不适合放 ConfigMap
+            # 更新点表只需替换节点文件并重启 Pod，无需重新 helm upgrade
+            - name: points-csv
+              mountPath: {{ .Values.pointsFile.mountPath }}
+              readOnly: true
+
+      volumes:
+        - name: app-config
+          configMap:
+            name: {{ include "sis-collect-luculent.configmapName" . }}
+        - name: points-csv
+          hostPath:
+            path: {{ .Values.pointsFile.hostPath }}
+            type: File
