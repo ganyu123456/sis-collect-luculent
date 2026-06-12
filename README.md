@@ -294,6 +294,138 @@ golangci-lint run
 go build -ldflags "-X github.com/sis-collect-luculent/internal/app.Version=v1.0.0" -o sis-collect-luculent ./main.go
 ```
 
+## 本地测试
+
+项目内置了完整的本地测试环境，包含：
+
+- `test/sis-simulator/main.go` — SIS HTTP API 模拟器，模拟真实测点数据（随机波动 + 概率离线）
+- `test/mosquitto/mosquitto.conf` — Mosquitto 配置文件
+- `test/config.test.yaml` — 测试专用配置（采集间隔 5s、batch_size 缩小便于观察）
+
+### 前置条件
+
+- Go 1.23+
+- Docker（仅用于运行 MQTT Broker）
+
+### 启动测试环境
+
+**第一步：启动 MQTT Broker**
+
+```bash
+docker run -d --name test-mosquitto -p 1883:1883 \
+  -v $(pwd)/test/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro \
+  eclipse-mosquitto:2.0
+```
+
+**第二步：启动 SIS 模拟器**（新终端）
+
+```bash
+go run ./test/sis-simulator/main.go
+```
+
+启动成功后输出：
+
+```
+SIS 模拟器启动，监听 :7757
+支持的测点数量: 10
+接口: POST /api/Values/GetDataPoint
+```
+
+**第三步：启动主应用**（新终端）
+
+```bash
+go run ./main.go -config test/config.test.yaml
+```
+
+启动成功后输出：
+
+```
+SIS 数采应用启动  {"sis_base_url": "http://localhost:7757", "mqtt_broker": "tcp://localhost:1883"}
+点表加载完成      {"total": 11, "enabled": 10}
+MQTT 连接成功     {"broker": "tcp://localhost:1883"}
+数采应用启动      {"collect_interval_s": 5, "mqtt_batch_size": 4}
+```
+
+### 功能验证
+
+**观察 MQTT 实时消息**
+
+```bash
+docker exec test-mosquitto mosquitto_sub -h localhost -t "device/#" -v
+```
+
+输出示例（每 5 秒一轮）：
+
+```
+device/sis-test-001/data   {"timestamp":...,"gatewayId":"sis-test-001","batchData":{"DDM.SIS.0DCS_00BHT03GT001XQ001":121.33,...}}
+device/sis-test-001/status {"timestamp":...,"runState":"Running","collectPointTotal":10,"collectPointOnline":9,...}
+```
+
+**验证健康检查接口**
+
+```bash
+# 存活探针
+curl http://localhost:8080/health
+
+# 就绪探针
+curl http://localhost:8080/ready
+```
+
+`/health` 响应示例：
+
+```json
+{
+  "status": "ok",
+  "task_running": true,
+  "mqtt_connected": true,
+  "collect_interval_s": 5,
+  "point_total": 11,
+  "point_enabled": 10,
+  "online_count": 9,
+  "uptime": "20s",
+  "version": "dev"
+}
+```
+
+**下发平台指令（cmd 主题）**
+
+```bash
+# 修改采集间隔为 3 秒
+docker exec test-mosquitto mosquitto_pub \
+  -h localhost -t "device/sis-test-001/cmd" \
+  -m '{"requestId":"req-001","timestamp":0,"params":{"collectInterval":3}}'
+
+# 停止采集任务
+docker exec test-mosquitto mosquitto_pub \
+  -h localhost -t "device/sis-test-001/cmd" \
+  -m '{"requestId":"req-002","timestamp":0,"params":{"taskControl":0}}'
+
+# 重新启动采集
+docker exec test-mosquitto mosquitto_pub \
+  -h localhost -t "device/sis-test-001/cmd" \
+  -m '{"requestId":"req-003","timestamp":0,"params":{"taskControl":1}}'
+```
+
+指令生效后可通过 `/health` 接口或 MQTT `status` 主题确认状态变化。
+
+**直接调用 SIS 模拟器接口**
+
+```bash
+curl -s -X POST http://localhost:7757/api/Values/GetDataPoint \
+  -H "Content-Type: application/json" \
+  -d '{"Names":"DDM.SIS.0DCS_00BHT03GT001XQ001,DDM.SIS.0DCS_00BHT03GT001XQ002"}' \
+  | python3 -m json.tool
+```
+
+### 停止测试环境
+
+```bash
+# 停止主应用和 SIS 模拟器：在各终端按 Ctrl+C
+
+# 停止并删除 MQTT Broker 容器
+docker stop test-mosquitto && docker rm test-mosquitto
+```
+
 ## License
 
 MIT

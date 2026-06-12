@@ -1,0 +1,39 @@
+sis:
+  base_url: "http://localhost:7757"
+  data_point_path: "/api/Values/GetDataPoint"
+  timeout_seconds: 10
+  batch_size: 5
+
+mqtt:
+  broker: "tcp://localhost:1883"
+  client_id: "sis-collect-luculent-test"
+  username: ""
+  password: ""
+  keep_alive: 60
+  clean_session: true
+  qos: 1
+  tls_enable: false
+  tls_ca_cert: ""
+  tls_client_cert: ""
+  tls_client_key: ""
+  reconnect_min_seconds: 1
+  reconnect_max_seconds: 30
+
+collect:
+  topic:
+    device_id: "sis-test-001"
+    status_topic: "device/sis-test-001/status"
+    cmd_topic:    "device/sis-test-001/cmd"
+    data_topic:   "device/sis-test-001/data"
+  collect_interval_s: 5
+  status_interval_s: 10
+  mqtt_batch_size: 4
+
+point_csv: "points.csv"
+
+health:
+  port: 8080
+
+log:
+  level: "debug"
+  file_path: ""

@@ -1,0 +1,74 @@
+name: sis-collect-test
+
+services:
+
+  # ── MQTT Broker ──────────────────────────────────────────
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: test-mosquitto
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./test/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    healthcheck:
+      test: ["CMD", "mosquitto_sub", "-t", "$$SYS/#", "-C", "1", "-i", "healthcheck", "-W", "3"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ── SIS HTTP API 模拟器 ────────────────────────────────────
+  sis-simulator:
+    image: golang:1.23-alpine
+    container_name: test-sis-simulator
+    working_dir: /app
+    volumes:
+      - ./test/sis-simulator:/app
+    command: go run main.go
+    ports:
+      - "7757:7757"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:7757/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # ── sis-collect-luculent 主应用 ────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VERSION: test-local
+    container_name: test-app
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+      sis-simulator:
+        condition: service_healthy
+    volumes:
+      # 挂载测试配置，覆盖镜像内默认配置
+      - ./test/config.test.yaml:/app/config.yaml:ro
+      - ./points.csv:/app/points.csv:ro
+    ports:
+      - "8080:8080"
+    environment:
+      - TZ=Asia/Shanghai
+    restart: on-failure
+
+  # ── MQTT 消息订阅器（用于观察输出，不是服务组件）──────────────
+  mqtt-watcher:
+    image: eclipse-mosquitto:2.0
+    container_name: test-mqtt-watcher
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    # 订阅所有 device/# 主题，实时打印采集上报的 JSON
+    command: >
+      mosquitto_sub
+        -h mosquitto
+        -p 1883
+        -t "device/#"
+        -v
+        --pretty
+    restart: on-failure

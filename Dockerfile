@@ -14,8 +14,10 @@ RUN go mod download
 COPY . .
 
 # 编译，注入版本信息
+# TARGETARCH 由 docker buildx 自动传入（amd64 / arm64）；本地 docker build 默认为宿主机架构
 ARG VERSION=dev
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+ARG TARGETARCH
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} \
     go build -trimpath \
     -ldflags "-s -w -X github.com/sis-collect-luculent/internal/app.Version=${VERSION}" \
     -o sis-collect-luculent ./main.go
