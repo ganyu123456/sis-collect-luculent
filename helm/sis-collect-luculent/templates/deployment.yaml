@@ -18,9 +18,6 @@ spec:
       annotations:
         checksum/config: {{ include "sis-collect-luculent.configmapName" . | sha256sum }}
     spec:
-      {{- if .Values.nodeName }}
-      nodeName: {{ .Values.nodeName }}
-      {{- end }}
 
       {{- with .Values.tolerations }}
       tolerations:

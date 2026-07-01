@@ -12,7 +12,6 @@ imagePullSecrets:
   - name: harbor-secret
 
 # ── KubeEdge 边缘节点调度 ──────────────────────────────────
-nodeName: cloudedge-edge-01
 tolerations:
   - key: node-role.kubernetes.io/edge
     operator: Exists
