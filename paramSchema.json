@@ -1,0 +1,400 @@
+[
+  {
+    "groupKey": "image",
+    "label": "镜像配置",
+    "icon": "🐳",
+    "description": "容器镜像地址、版本及拉取策略",
+    "fields": [
+      {
+        "key": "repository",
+        "label": "镜像仓库地址",
+        "type": "string",
+        "required": true,
+        "defaultValue": "harbor.zkjgy.online/library/sis-collect-luculent",
+        "yamlPath": "image.repository",
+        "placeholder": "如 harbor.zkjgy.online/library/sis-collect-luculent",
+        "span": 24
+      },
+      {
+        "key": "tag",
+        "label": "镜像版本",
+        "type": "string",
+        "defaultValue": "latest",
+        "yamlPath": "image.tag",
+        "placeholder": "如 latest、v1.0.0",
+        "span": 12
+      },
+      {
+        "key": "pullPolicy",
+        "label": "镜像拉取策略",
+        "type": "select",
+        "defaultValue": "IfNotPresent",
+        "yamlPath": "image.pullPolicy",
+        "description": "IfNotPresent：本地有则用本地；Always：每次都拉取最新；Never：仅使用本地镜像",
+        "options": [
+          { "label": "IfNotPresent - 本地有则用本地", "value": "IfNotPresent" },
+          { "label": "Always - 每次都拉取最新", "value": "Always" },
+          { "label": "Never - 仅使用本地镜像", "value": "Never" }
+        ],
+        "span": 12
+      }
+    ]
+  },
+  {
+    "groupKey": "scheduling",
+    "label": "边缘节点调度",
+    "icon": "🖥️",
+    "description": "KubeEdge 边缘节点的调度策略与网络模式",
+    "fields": [
+      {
+        "key": "hostNetwork",
+        "label": "使用主机网络",
+        "type": "boolean",
+        "defaultValue": true,
+        "yamlPath": "hostNetwork",
+        "description": "开启后容器直接使用宿主机 IP 访问 SIS 服务和 MQTT Broker",
+        "span": 12
+      },
+      {
+        "key": "dnsPolicy",
+        "label": "DNS 策略",
+        "type": "select",
+        "defaultValue": "ClusterFirstWithHostNet",
+        "yamlPath": "dnsPolicy",
+        "description": "使用主机网络时推荐 ClusterFirstWithHostNet",
+        "options": [
+          { "label": "ClusterFirstWithHostNet", "value": "ClusterFirstWithHostNet" },
+          { "label": "ClusterFirst", "value": "ClusterFirst" },
+          { "label": "Default", "value": "Default" },
+          { "label": "None", "value": "None" }
+        ],
+        "span": 12
+      }
+    ]
+  },
+  {
+    "groupKey": "resources",
+    "label": "资源限制",
+    "icon": "💾",
+    "description": "容器 CPU 与内存的资源申请值及上限",
+    "fields": [
+      {
+        "key": "requestsCpu",
+        "label": "CPU 申请值",
+        "type": "string",
+        "defaultValue": "100m",
+        "yamlPath": "resources.requests.cpu",
+        "placeholder": "如 100m、500m",
+        "span": 12
+      },
+      {
+        "key": "requestsMemory",
+        "label": "内存申请值",
+        "type": "string",
+        "defaultValue": "64Mi",
+        "yamlPath": "resources.requests.memory",
+        "placeholder": "如 64Mi、128Mi",
+        "span": 12
+      },
+      {
+        "key": "limitsCpu",
+        "label": "CPU 上限",
+        "type": "string",
+        "defaultValue": "500m",
+        "yamlPath": "resources.limits.cpu",
+        "placeholder": "如 500m、1000m",
+        "span": 12
+      },
+      {
+        "key": "limitsMemory",
+        "label": "内存上限",
+        "type": "string",
+        "defaultValue": "128Mi",
+        "yamlPath": "resources.limits.memory",
+        "placeholder": "如 128Mi、512Mi",
+        "span": 12
+      }
+    ]
+  },
+  {
+    "groupKey": "sis",
+    "label": "SIS HTTP 接口",
+    "icon": "🔗",
+    "description": "SIS 数据源 HTTP 接口的连接与采集参数",
+    "fields": [
+      {
+        "key": "baseUrl",
+        "label": "SIS 服务地址",
+        "type": "string",
+        "required": true,
+        "defaultValue": "http://127.0.0.1:7757",
+        "yamlPath": "sis.baseUrl",
+        "placeholder": "如 http://127.0.0.1:7757",
+        "span": 24
+      },
+      {
+        "key": "dataPointPath",
+        "label": "数据接口路径",
+        "type": "string",
+        "defaultValue": "/api/Values/GetDataPoint",
+        "yamlPath": "sis.dataPointPath",
+        "placeholder": "如 /api/Values/GetDataPoint",
+        "span": 12
+      },
+      {
+        "key": "timeoutSeconds",
+        "label": "请求超时",
+        "type": "number",
+        "defaultValue": 10,
+        "yamlPath": "sis.timeoutSeconds",
+        "min": 1,
+        "max": 60,
+        "unit": "秒",
+        "span": 12
+      },
+      {
+        "key": "batchSize",
+        "label": "批量采集点数",
+        "type": "number",
+        "defaultValue": 50,
+        "yamlPath": "sis.batchSize",
+        "min": 1,
+        "max": 500,
+        "description": "单次请求采集的测点数量",
+        "span": 12
+      }
+    ]
+  },
+  {
+    "groupKey": "mqtt",
+    "label": "MQTT 连接配置",
+    "icon": "📡",
+    "description": "MQTT Broker 连接与认证参数",
+    "fields": [
+      {
+        "key": "broker",
+        "label": "Broker 地址",
+        "type": "string",
+        "required": true,
+        "defaultValue": "tcp://127.0.0.1:1883",
+        "yamlPath": "mqtt.broker",
+        "placeholder": "如 tcp://127.0.0.1:1883",
+        "description": "MQTT Broker 完整连接地址（含协议和端口）",
+        "span": 12
+      },
+      {
+        "key": "clientId",
+        "label": "客户端 ID",
+        "type": "string",
+        "defaultValue": "sis-collect-luculent-001",
+        "yamlPath": "mqtt.clientId",
+        "description": "同一 Broker 下需唯一",
+        "span": 12
+      },
+      {
+        "key": "username",
+        "label": "用户名",
+        "type": "string",
+        "defaultValue": "",
+        "yamlPath": "mqtt.username",
+        "placeholder": "留空则不认证",
+        "span": 12
+      },
+      {
+        "key": "password",
+        "label": "密码",
+        "type": "password",
+        "defaultValue": "",
+        "yamlPath": "mqtt.password",
+        "placeholder": "留空则不认证",
+        "span": 12
+      },
+      {
+        "key": "qos",
+        "label": "QoS 级别",
+        "type": "select",
+        "defaultValue": 1,
+        "yamlPath": "mqtt.qos",
+        "options": [
+          { "label": "0 - 最多一次", "value": 0 },
+          { "label": "1 - 至少一次（推荐）", "value": 1 },
+          { "label": "2 - 恰好一次", "value": 2 }
+        ],
+        "span": 12
+      },
+      {
+        "key": "keepAlive",
+        "label": "心跳间隔",
+        "type": "number",
+        "defaultValue": 60,
+        "yamlPath": "mqtt.keepAlive",
+        "min": 10,
+        "max": 3600,
+        "unit": "秒",
+        "span": 12
+      },
+      {
+        "key": "cleanSession",
+        "label": "清理会话",
+        "type": "boolean",
+        "defaultValue": true,
+        "yamlPath": "mqtt.cleanSession",
+        "description": "客户端断开时是否清除服务端会话",
+        "span": 12
+      },
+      {
+        "key": "tlsEnable",
+        "label": "启用 TLS",
+        "type": "boolean",
+        "defaultValue": false,
+        "yamlPath": "mqtt.tlsEnable",
+        "span": 12
+      }
+    ]
+  },
+  {
+    "groupKey": "collect",
+    "label": "采集任务配置",
+    "icon": "⏱️",
+    "description": "数据采集的主题、间隔与批次参数",
+    "fields": [
+      {
+        "key": "deviceId",
+        "label": "设备 ID",
+        "type": "string",
+        "defaultValue": "sis-001",
+        "yamlPath": "collect.topic.deviceId",
+        "span": 12
+      },
+      {
+        "key": "dataTopic",
+        "label": "数据上报 Topic",
+        "type": "string",
+        "defaultValue": "device/sis-001/data",
+        "yamlPath": "collect.topic.dataTopic",
+        "span": 24
+      },
+      {
+        "key": "statusTopic",
+        "label": "状态上报 Topic",
+        "type": "string",
+        "defaultValue": "device/sis-001/status",
+        "yamlPath": "collect.topic.statusTopic",
+        "span": 12
+      },
+      {
+        "key": "cmdTopic",
+        "label": "指令接收 Topic",
+        "type": "string",
+        "defaultValue": "device/sis-001/cmd",
+        "yamlPath": "collect.topic.cmdTopic",
+        "span": 12
+      },
+      {
+        "key": "collectIntervalS",
+        "label": "采集间隔",
+        "type": "number",
+        "defaultValue": 10,
+        "yamlPath": "collect.collectIntervalS",
+        "min": 1,
+        "max": 3600,
+        "unit": "秒",
+        "span": 12
+      },
+      {
+        "key": "statusIntervalS",
+        "label": "状态上报间隔",
+        "type": "number",
+        "defaultValue": 30,
+        "yamlPath": "collect.statusIntervalS",
+        "min": 5,
+        "max": 3600,
+        "unit": "秒",
+        "span": 12
+      },
+      {
+        "key": "mqttBatchSize",
+        "label": "MQTT 批量上报条数",
+        "type": "number",
+        "defaultValue": 100,
+        "yamlPath": "collect.mqttBatchSize",
+        "min": 1,
+        "max": 5000,
+        "unit": "条",
+        "span": 12
+      }
+    ]
+  },
+  {
+    "groupKey": "logAndHealth",
+    "label": "日志与健康检查",
+    "icon": "📋",
+    "description": "日志级别、输出路径及健康检查端口",
+    "fields": [
+      {
+        "key": "logLevel",
+        "label": "日志级别",
+        "type": "select",
+        "defaultValue": "info",
+        "yamlPath": "log.level",
+        "options": [
+          { "label": "debug - 调试", "value": "debug" },
+          { "label": "info - 信息（推荐）", "value": "info" },
+          { "label": "warn - 警告", "value": "warn" },
+          { "label": "error - 错误", "value": "error" }
+        ],
+        "span": 12
+      },
+      {
+        "key": "logFilePath",
+        "label": "日志文件路径",
+        "type": "string",
+        "defaultValue": "",
+        "yamlPath": "log.filePath",
+        "placeholder": "留空仅输出控制台；填写路径则同时写文件",
+        "description": "如 /var/log/sis-collect/app.log",
+        "span": 12
+      },
+      {
+        "key": "healthPort",
+        "label": "健康检查端口",
+        "type": "number",
+        "defaultValue": 8080,
+        "yamlPath": "health.port",
+        "min": 1,
+        "max": 65535,
+        "span": 12
+      }
+    ]
+  },
+  {
+    "groupKey": "pointsFile",
+    "label": "点表文件挂载",
+    "icon": "📁",
+    "description": "边缘节点本地 CSV 点表文件的挂载路径",
+    "fields": [
+      {
+        "key": "hostPath",
+        "label": "节点主机路径",
+        "type": "string",
+        "required": true,
+        "defaultValue": "/opt/sis-collect-luculent/points.csv",
+        "yamlPath": "pointsFile.hostPath",
+        "placeholder": "如 /opt/sis-collect-luculent/points.csv",
+        "description": "边缘节点上 points.csv 的绝对路径，部署前需将文件上传到此位置",
+        "span": 12
+      },
+      {
+        "key": "mountPath",
+        "label": "容器内挂载路径",
+        "type": "string",
+        "required": true,
+        "defaultValue": "/app/points.csv",
+        "yamlPath": "pointsFile.mountPath",
+        "placeholder": "如 /app/points.csv",
+        "description": "挂载到容器内的目标路径，与程序读取路径保持一致",
+        "span": 12
+      }
+    ]
+  }
+]
